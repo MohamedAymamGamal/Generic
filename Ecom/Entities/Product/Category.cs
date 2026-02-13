@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
-using
+
 namespace Ecom.Core.Entities.Product
 {
     public class Category : BaseEntity<int>

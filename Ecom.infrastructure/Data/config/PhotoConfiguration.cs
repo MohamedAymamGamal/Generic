@@ -11,7 +11,17 @@ namespace Ecom.infrastructure.Data.config
     {
         public void Configure(EntityTypeBuilder<Photo> builder)
         {
-            throw new NotImplementedException();
+            builder.Property(x => x.Id)
+                 .IsRequired()
+                 .HasMaxLength(30);
+            builder.Property(x => x.ImageName)
+                .IsRequired()
+                .HasMaxLength(255);
+
+            builder.HasOne(x => x.Product)
+                 .WithMany(p => p.Photos)
+                 .HasForeignKey(x => x.ProductId)
+                 .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
