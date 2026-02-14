@@ -17,6 +17,10 @@ namespace Ecom.infrastructure.Data.config
 
             builder.Property( x => x.Id)
                  .IsRequired();
+
+            builder.HasData(
+                    new Category { Id = 1, Name = "Electronics" }
+                );
         }
     }
 }

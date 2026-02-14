@@ -1,4 +1,6 @@
+using Ecom.Core.Interfaces;
 using Ecom.infrastructure;
+using Ecom.infrastructure.Reposities;
 namespace Ecom.Api
 {
     public class Program
@@ -14,7 +16,7 @@ namespace Ecom.Api
             builder.Services.AddOpenApi();
 
             builder.Services.infrastructureConfiguration(builder.Configuration);
-
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
