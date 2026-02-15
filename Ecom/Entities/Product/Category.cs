@@ -11,7 +11,6 @@ namespace Ecom.Core.Entities.Product
 
         public string? Description { get; set; }
 
-        public ICollection<Product>  Products{ get; set;} = new HashSet<Product>();
 
     }
 }
