@@ -49,6 +49,10 @@ namespace Ecom.infrastructure.Reposities
         public async Task<T> GetByIdAsync(int id)
         {
             var entity =  await _context.Set<T>().FindAsync(id);
+            if (entity != null)
+            {
+                _context.Entry(entity).State = EntityState.Detached;
+            }
             return entity;
         }
 
