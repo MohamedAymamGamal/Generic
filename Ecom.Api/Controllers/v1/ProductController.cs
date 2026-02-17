@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using Ecom.Api.Helper;
+using Ecom.Core.DTO;
+using Ecom.Core.Entities.Product;
 using Ecom.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,12 +17,14 @@ namespace Ecom.Api.Controllers.v1
         {
             try
             {
-                var products = await work.ProductRepository.GetAllAsync( x =>x.Category, x => x.Photos);
+                var products = await work.ProductRepository.GetAllAsync(x => x.Category, x => x.Photos);
+               
+                 var result = mapper.Map<List<ProductDto>>(products);
                 if (products == null)
                 {
                     return BadRequest(new ResponseAPI(400));
                 }
-                return Ok(products);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -29,28 +33,32 @@ namespace Ecom.Api.Controllers.v1
 
         }
 
+        [HttpGet("get-by-id/{id}")]
 
         public async Task<IActionResult> GetById(int id)
         {
             try
             {
-                var product = await work.ProductRepository.GetByIdAsync(id);
+                var product = await work.ProductRepository.GetByIdAsync(id,x => x.Category, x=> x.Photos);
+                var result = mapper.Map<ProductDto>(product);
                 if (product == null)
                 {
                     return BadRequest(new ResponseAPI(400, $"not found product id={id}"));
                 }
-                return Ok(product);
-            }
+                return Ok(result);
+            } 
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest( ex.Message);
             }
         }
+        [HttpPost("add-product")]
 
-        public async Task<IActionResult> AddProduct()
-        {
+        public async Task<IActionResult> Add(AddProductDto addProductDto)
+        {addProductDto
             try
             {
+                await work.ProductRepository.AddAsync(addProductDto);
                 return Ok(new ResponseAPI(201, "Product added successfully"));
             }
             catch (Exception ex)
@@ -60,8 +68,9 @@ namespace Ecom.Api.Controllers.v1
         }
 
 
+        [HttpPut("update-product")]
 
-        public async Task<IActionResult> UpdateProduct()
+        public async Task<IActionResult> Update()
         {
             try
             {
@@ -72,6 +81,19 @@ namespace Ecom.Api.Controllers.v1
                 return StatusCode(500, ex.Message);
             }
         }
-    }
+        [HttpDelete("delete-product")]
+
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                return Ok(new ResponseAPI(200, "Product deleted successfully"));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+    } 
 
 }
