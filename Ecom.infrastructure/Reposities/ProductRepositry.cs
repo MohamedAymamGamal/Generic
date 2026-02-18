@@ -4,6 +4,7 @@ using Ecom.Core.Entities.Product;
 using Ecom.Core.Interfaces;
 using Ecom.Core.Service;
 using Ecom.infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using System;
 using System.Collections.Generic;
@@ -30,9 +31,63 @@ namespace Ecom.infrastructure.Reposities
             
             await context.Products.AddAsync(product);
             await context.SaveChangesAsync();
-            var  ImagePath = imageMangamentService.SaveImage(addProductDto.Photo);
+            var  ImagePath = await imageMangamentService.AddImageAsync(addProductDto.Photo, addProductDto.Name);
+
+            var photo = ImagePath.Select(path => new Photo
+            {
+
+                ImageName = path,
+                ProductId = product.Id,
+
+            }).ToList();
+            await context.Photos.AddRangeAsync(photo);
+            await context.SaveChangesAsync();
             return true;
 
+        }
+
+        
+
+        public async Task<bool> UpdateAsync(UpdateProductDto updateProductDto)
+        {
+            if(updateProductDto is null) return false;
+
+            var findProduct = await context.Products.Include(m => m.Category).Include(m=>m.Category).FirstOrDefaultAsync(m=> m.Id== updateProductDto.Id);
+
+            if(findProduct is null) return false;
+
+            mapper.Map(updateProductDto, findProduct);
+
+            var FindPhoto = await context.Photos.Where(m => m.ProductId == updateProductDto.Id).ToListAsync();  
+
+            foreach (var item in FindPhoto)
+            {
+                imageMangamentService.DeleteImageAsync(item.ImageName);
+            }
+            context.Photos.RemoveRange(FindPhoto);
+
+            var ImagePath = await imageMangamentService.AddImageAsync(updateProductDto.Photo, updateProductDto.Name);
+
+            var photo = ImagePath.Select(path => new Photo
+            {
+                ImageName = path,
+                ProductId = findProduct.Id,
+            }).ToList();
+             await context.Photos.AddRangeAsync(photo);
+            await context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteAsync(Product id)
+        {
+            var photo = await context.Photos.Where(m => m.ProductId == id.Id).ToListAsync();
+            foreach (var item in photo)
+            {
+                imageMangamentService.DeleteImageAsync(item.ImageName);
+            }
+           context.Products.Remove(id);
+            await context.SaveChangesAsync();
+            return true;
         }
     }
 }

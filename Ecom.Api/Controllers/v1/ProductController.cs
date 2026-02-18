@@ -55,7 +55,7 @@ namespace Ecom.Api.Controllers.v1
         [HttpPost("add-product")]
 
         public async Task<IActionResult> Add(AddProductDto addProductDto)
-        {addProductDto
+        {
             try
             {
                 await work.ProductRepository.AddAsync(addProductDto);
@@ -70,28 +70,32 @@ namespace Ecom.Api.Controllers.v1
 
         [HttpPut("update-product")]
 
-        public async Task<IActionResult> Update()
+        public async Task<IActionResult> Update(UpdateProductDto updateProductDto)
         {
             try
-            {
+            {           
+                await work.ProductRepository.UpdateAsync(updateProductDto);
                 return Ok(new ResponseAPI(200, "Product updated successfully"));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(new ResponseAPI(400, ex.Message));
             }
         }
-        [HttpDelete("delete-product")]
+        [HttpDelete("delete-product/{id}")]
 
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
+                var product = await work.ProductRepository.GetByIdAsync(id, x=>x.Photos , x=>x.Category);
+                await work.ProductRepository.DeleteAsync(product);
                 return Ok(new ResponseAPI(200, "Product deleted successfully"));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(new ResponseAPI(400, ex.Message));
+
             }
         }
     } 

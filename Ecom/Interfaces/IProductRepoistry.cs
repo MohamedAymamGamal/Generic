@@ -9,5 +9,10 @@ namespace Ecom.Core.Interfaces
     public interface IProductRepoistry: IGenericRepositry<Product>
     {
         Task<bool> AddAsync(AddProductDto addProductDto);
+
+
+        Task<bool> UpdateAsync(UpdateProductDto updateProductDto); 
+
+        Task<bool> DeleteAsync(Product id);
     }
 }

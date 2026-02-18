@@ -1,9 +1,12 @@
 ﻿using Ecom.Core.Interfaces;
+using Ecom.Core.Service;
 using Ecom.infrastructure.Data;
 using Ecom.infrastructure.Reposities;
+using Ecom.infrastructure.Reposities.Service;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,13 +20,21 @@ namespace Ecom.infrastructure
 
             services.AddScoped(typeof(IGenericRepositry<>), typeof(GenericRepositry<>));
             //apply unit of work pattern 
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddSingleton<IImageMangamentService, ImageMangamentService>();
             //apply DbContext
+            services.AddSingleton<IConfiguration>(configuration);
+
+            services.AddSingleton<IFileProvider>( 
+                new PhysicalFileProvider(
+                 Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")
+                    )
+                  );
             services.AddDbContext<ApplicationDbContext>(op =>
             {
                 op.UseSqlServer(configuration.GetConnectionString("DefaultConnection")); 
             });
             return services;
+
         }
     }
 }
