@@ -10,7 +10,7 @@ namespace Ecom.Core.DTO
     {
         public string? Name { get; set; }
         public string? Description { get; set; }
-        public virtual List<PhotoDto> Photos { get; set; }
+        public virtual List<PhotoDto> Photos { get; set; } 
 
         public decimal? Newprice { get; set; }
         public decimal? OldPrice { get; set; }

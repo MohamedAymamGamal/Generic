@@ -1,13 +1,15 @@
-﻿using Ecom.Core.DTO;
+﻿using Ecom.Api.Sharing;
+using Ecom.Core.DTO;
 using Ecom.Core.Entities.Product;
 using System;
 using System.Collections.Generic;
 using System.Text;
-
 namespace Ecom.Core.Interfaces
 {
     public interface IProductRepoistry: IGenericRepositry<Product>
     {
+        Task<IEnumerable<ProductDto>> GetAllAsync(ProductParams productParams);
+
         Task<bool> AddAsync(AddProductDto addProductDto);
 
 

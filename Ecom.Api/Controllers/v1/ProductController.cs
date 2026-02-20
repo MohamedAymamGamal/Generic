@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Ecom.Api.Helper;
+using Ecom.Api.Sharing;
 using Ecom.Core.DTO;
 using Ecom.Core.Entities.Product;
 using Ecom.Core.Interfaces;
@@ -13,22 +14,19 @@ namespace Ecom.Api.Controllers.v1
         {
         }
         [HttpGet("get-all")]
-        public async Task<IActionResult> get()
+        public async Task<IActionResult> get([FromQuery] ProductParams productParams )
         {
             try
             {
-                var products = await work.ProductRepository.GetAllAsync(x => x.Category, x => x.Photos);
+                var products = await work.ProductRepository.GetAllAsync(productParams);
                
-                 var result = mapper.Map<List<ProductDto>>(products);
-                if (products == null)
-                {
-                    return BadRequest(new ResponseAPI(400));
-                }
-                return Ok(result);
+              
+                return Ok(products);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex.Message);
+                return BadRequest(new ResponseAPI(400, ex.Message));
+
             }
 
         }
@@ -49,7 +47,8 @@ namespace Ecom.Api.Controllers.v1
             } 
             catch (Exception ex)
             {
-                return BadRequest( ex.Message);
+                return BadRequest(new ResponseAPI(400, ex.Message));
+
             }
         }
         [HttpPost("add-product")]

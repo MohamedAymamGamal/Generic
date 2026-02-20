@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Ecom.Api.Sharing;
 using Ecom.Core.DTO;
 using Ecom.Core.Entities.Product;
 using Ecom.Core.Interfaces;
@@ -24,6 +25,37 @@ namespace Ecom.infrastructure.Reposities
             this.imageMangamentService = imageMangamentService;
         }
 
+        public async Task<IEnumerable<ProductDto>> GetAllAsync(ProductParams productParams)
+        {
+            var query = context.Products
+                .Include(m =>m.Category)
+                .Include(m =>m.Photos)
+                .AsNoTracking();
+
+            //filtering
+            if (productParams.CategoryId.HasValue)
+            {
+                query = query.Where(m => m.CategoryId == productParams.CategoryId.Value);
+            }
+            //sorting
+            if(!string.IsNullOrEmpty(productParams.Sort)){
+                query = productParams.Sort switch
+                {
+                    "name_desc" => query.OrderByDescending(m => m.Name),
+                    "price_asc" => query.OrderBy(m => m.NewPrice),
+                    "price_desc" => query.OrderByDescending(m => m.NewPrice),
+                    _ => query.OrderBy(m => m.Name)
+                };
+            }
+           
+            //pagination
+
+
+            query = query.Skip(productParams.PageSize * (productParams.PageNumber - 1)).Take(productParams.PageSize);
+
+            var result =  mapper.Map<List<ProductDto>>(query);
+            return result;
+        }
         public async Task<bool> AddAsync(AddProductDto addProductDto)
         {
             if (addProductDto == null) return false;
@@ -52,13 +84,18 @@ namespace Ecom.infrastructure.Reposities
         {
             if(updateProductDto is null) return false;
 
-            var findProduct = await context.Products.Include(m => m.Category).Include(m=>m.Category).FirstOrDefaultAsync(m=> m.Id== updateProductDto.Id);
+            var findProduct = await context
+                .Products.Include(m => m.Category)
+                .Include(m=>m.Category)
+                .FirstOrDefaultAsync(m=> m.Id== updateProductDto.Id);
 
             if(findProduct is null) return false;
 
             mapper.Map(updateProductDto, findProduct);
 
-            var FindPhoto = await context.Photos.Where(m => m.ProductId == updateProductDto.Id).ToListAsync();  
+            var FindPhoto = await context.
+                Photos.Where(m => m.ProductId == updateProductDto.Id)
+                .ToListAsync();  
 
             foreach (var item in FindPhoto)
             {
@@ -66,7 +103,8 @@ namespace Ecom.infrastructure.Reposities
             }
             context.Photos.RemoveRange(FindPhoto);
 
-            var ImagePath = await imageMangamentService.AddImageAsync(updateProductDto.Photo, updateProductDto.Name);
+            var ImagePath = await imageMangamentService
+                .AddImageAsync(updateProductDto.Photo, updateProductDto.Name);
 
             var photo = ImagePath.Select(path => new Photo
             {
@@ -85,7 +123,7 @@ namespace Ecom.infrastructure.Reposities
             {
                 imageMangamentService.DeleteImageAsync(item.ImageName);
             }
-           context.Products.Remove(id);
+            context.Products.Remove(id);
             await context.SaveChangesAsync();
             return true;
         }
