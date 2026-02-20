@@ -3,6 +3,7 @@ using Ecom.Core.Interfaces;
 using Ecom.infrastructure;
 using Ecom.infrastructure.Reposities;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 
 namespace Ecom.Api
 {
@@ -21,7 +22,19 @@ namespace Ecom.Api
             builder.Services.infrastructureConfiguration(builder.Configuration);
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-
+            ////////////////////////////////////////////////////////////
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("CORSPolicy", policy =>
+                {
+                    policy
+                        .WithOrigins("http://localhost:4200") 
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
+            });
+            //////////////////////////////////////////////////////////
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             var app = builder.Build();
 
@@ -43,7 +56,7 @@ namespace Ecom.Api
 
             app.UseAuthorization();
 
-
+            app.UseCors("CORSPolicy");
             app.MapControllers();
 
             app.Run();

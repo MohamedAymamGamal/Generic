@@ -31,7 +31,13 @@ namespace Ecom.infrastructure.Reposities
                 .Include(m =>m.Category)
                 .Include(m =>m.Photos)
                 .AsNoTracking();
-
+            //searching
+            if (!string.IsNullOrEmpty(productParams.Search))
+            {
+               var search = productParams.Search.Split(' ');
+                query = query.Where(m => search.Any(s => m.Name.ToLower().Contains(s) 
+                || m.Description.ToLower().Contains(s.ToLower())));
+            }
             //filtering
             if (productParams.CategoryId.HasValue)
             {
