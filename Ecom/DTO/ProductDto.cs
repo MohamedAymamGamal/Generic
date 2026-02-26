@@ -21,6 +21,12 @@ namespace Ecom.Core.DTO
         public string? ImageName { get; set; }
         public int ProductId { get; set; }  
     }
+
+    public record ReturnProductDto
+    {
+        public List<ProductDto> products { get; set; }
+        public int TotalCount { get; set; }
+    }
     public record AddProductDto
     {
         public string ? Name { get; set; }

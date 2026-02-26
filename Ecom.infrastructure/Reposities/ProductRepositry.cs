@@ -25,7 +25,7 @@ namespace Ecom.infrastructure.Reposities
             this.imageMangamentService = imageMangamentService;
         }
 
-        public async Task<IEnumerable<ProductDto>> GetAllAsync(ProductParams productParams)
+        public async Task<ReturnProductDto> GetAllAsync(ProductParams productParams)
         {
             var query = context.Products
                 .Include(m =>m.Category)
@@ -43,6 +43,10 @@ namespace Ecom.infrastructure.Reposities
             {
                 query = query.Where(m => m.CategoryId == productParams.CategoryId.Value);
             }
+            
+          
+            
+            
             //sorting
             if(!string.IsNullOrEmpty(productParams.Sort)){
                 query = productParams.Sort switch
@@ -56,11 +60,13 @@ namespace Ecom.infrastructure.Reposities
            
             //pagination
 
-
+            ReturnProductDto retrunProductDto = new ReturnProductDto();
+            retrunProductDto.TotalCount = query.Count();
+            
             query = query.Skip(productParams.PageSize * (productParams.PageNumber - 1)).Take(productParams.PageSize);
 
-            var result =  mapper.Map<List<ProductDto>>(query);
-            return result;
+            retrunProductDto.products =  mapper.Map<List<ProductDto>>(query);
+            return retrunProductDto;
         }
         public async Task<bool> AddAsync(AddProductDto addProductDto)
         {
