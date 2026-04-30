@@ -8,14 +8,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Ecom.Api.Controllers.v1
 {
-
+    [Route("api/v1/categories")]
     public class CategoryController : BaseController
     {
-        public CategoryController(IUnitOfWork work, IMapper mapper) : base(work,mapper)
+        public CategoryController(IUnitOfWork work, IMapper mapper) : base(work, mapper)
         {
         }
 
-        [HttpGet("get-all")]
+        [HttpGet]
         public async Task<IActionResult> get()
         {
             try
@@ -37,7 +37,7 @@ namespace Ecom.Api.Controllers.v1
         }
 
 
-        [HttpGet("get-by-id/{id}")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
             try
@@ -45,7 +45,7 @@ namespace Ecom.Api.Controllers.v1
                 var category = await work.CategoryRepository.GetByIdAsync(id);
                 if (category == null)
                 {
-                    return BadRequest(new ResponseAPI(400,$"not found category id={id}"));
+                    return BadRequest(new ResponseAPI(400, $"not found category id={id}"));
                 }
                 return Ok(category);
             }
@@ -56,7 +56,7 @@ namespace Ecom.Api.Controllers.v1
 
             }
         }
-        [HttpPost("add-category")]
+        [HttpPost]
 
         public async Task<IActionResult> AddCategory([FromBody] CategoryDTO category)
         {
@@ -64,7 +64,7 @@ namespace Ecom.Api.Controllers.v1
             {
                 var Category = mapper.Map<Category>(category);
                 await work.CategoryRepository.AddAsync(Category);
-                return Ok(new ResponseAPI(200,"items has been added"));
+                return Ok(new ResponseAPI(200, "items has been added"));
             }
             catch (Exception ex)
             {
@@ -72,14 +72,14 @@ namespace Ecom.Api.Controllers.v1
             }
 
         }
-        [HttpPut("update-category")]
+        [HttpPut("{id}")]
 
-        public async Task<IActionResult> UpdateCategory(CategoryUpdateDTO category)
+        public async Task<IActionResult> UpdateCategory(int id, [FromBody] CategoryUpdateDTO category)
         {
             try
             {
                 var Category = mapper.Map<Category>(category);
-
+                Category.Id = id;
                 await work.CategoryRepository.UpdateAsync(Category);
                 return Ok(new ResponseAPI(201, "items has been updated"));
 
@@ -90,7 +90,7 @@ namespace Ecom.Api.Controllers.v1
             }
 
         }
-        [HttpDelete("delete-category/{id}")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
             try

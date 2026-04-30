@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="infrastructure\" />
+    <Compile Remove="infrastructure\**" />
+    <EmbeddedResource Remove="infrastructure\**" />
+    <None Remove="infrastructure\**" />
   </ItemGroup>
 
   <ItemGroup>

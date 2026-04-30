@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Ecom.Api.Controllers
 {
-    [Route("api/v1/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class BaseController : ControllerBase
     {

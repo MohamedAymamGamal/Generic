@@ -7,8 +7,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Text;
 
 namespace Ecom.infrastructure
@@ -17,6 +19,13 @@ namespace Ecom.infrastructure
     {
         public static  IServiceCollection infrastructureConfiguration(this IServiceCollection services,IConfiguration configuration)
         {
+
+            //apply Redis
+            services.AddSingleton<IConnectionMultiplexer>(x =>
+            {
+                var configurationOptions = ConfigurationOptions.Parse(configuration.GetConnectionString("redis"));
+                return ConnectionMultiplexer.Connect(configurationOptions);
+            });
 
             services.AddScoped(typeof(IGenericRepositry<>), typeof(GenericRepositry<>));
             //apply unit of work pattern 
