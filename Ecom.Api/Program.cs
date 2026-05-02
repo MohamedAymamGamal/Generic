@@ -25,38 +25,30 @@ namespace Ecom.Api
             ////////////////////////////////////////////////////////////
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("CORSPolicy", policy =>
-                {
-                    policy
-                        .WithOrigins("http://localhost:4200") 
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();
-                });
+                options.AddPolicy("CORSPolicy",
+                    builder =>
+                    {
+                        builder.WithOrigins("http://localhost:4200", "https://localhost:4200")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
+                    });
             });
+
+
             //////////////////////////////////////////////////////////
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             var app = builder.Build();
 
-           
+
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.MapOpenApi();
-            }
+
             ///policy for angular to access the api
-
-
-            //midddleware for error handling
-            app.UseMiddleware<ExceptionMiddleware>(); 
+            app.UseCors("CORSPolicy");       
+            //app.UseHttpsRedirection();        
+            app.UseMiddleware<ExceptionMiddleware>();
             app.UseStatusCodePagesWithReExecute("/errors/{0}");
-
-
-            app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-            app.UseCors("CORSPolicy");
             app.MapControllers();
 
             app.Run();

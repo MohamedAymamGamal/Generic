@@ -13,7 +13,7 @@ namespace Ecom.Api.Middleware
 
         private readonly IMemoryCache _cache;
         private readonly IHostEnvironment _environment;
-        private readonly TimeSpan _rateLimit = TimeSpan.FromSeconds(30000000);
+        private readonly TimeSpan _rateLimit = TimeSpan.FromHours(30000000);
         public ExceptionMiddleware(RequestDelegate next, IHostEnvironment environment, IMemoryCache cache)
         {
             _next = next;
