@@ -34,10 +34,14 @@ namespace Ecom.infrastructure.Reposities
             //searching
             if (!string.IsNullOrEmpty(productParams.Search))
             {
-               var search = productParams.Search.Split(' ');
-                query = query.Where(m => search.Any(s => m.Name.ToLower().Contains(s) 
-                || m.Description.ToLower().Contains(s.ToLower())));
+                var search = productParams.Search.ToLower().Trim();
+
+                query = query.Where(m =>
+                    m.Name.ToLower().Contains(search) ||
+                    m.Description.ToLower().Contains(search)
+                );
             }
+
             //filtering
             if (productParams.CategoryId.HasValue)
             {
@@ -113,7 +117,7 @@ namespace Ecom.infrastructure.Reposities
             {
                 imageMangamentService.DeleteImageAsync(item.ImageName);
             }
-            context.Photos.RemoveRange(FindPhoto);
+             context.Photos.RemoveRange(FindPhoto);
 
             var ImagePath = await imageMangamentService
                 .AddImageAsync(updateProductDto.Photo, updateProductDto.Name);
