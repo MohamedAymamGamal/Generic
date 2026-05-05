@@ -8,7 +8,8 @@ namespace Ecom.Core.Interfaces
 {
     public interface IProductRepoistry: IGenericRepositry<Product>
     {
-        Task<ReturnProductDto> GetAllAsync(ProductParams productParams);
+        Task<IEnumerable<ProductDto>> GetAllAsync(ProductParams productParams);
+
 
         Task<bool> AddAsync(AddProductDto addProductDto);
 

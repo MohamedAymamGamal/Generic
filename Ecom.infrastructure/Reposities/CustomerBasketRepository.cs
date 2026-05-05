@@ -8,7 +8,6 @@ namespace Ecom.infrastructure.Reposities
     public class CustomerBasketRepository : ICustomerBasketRepository
     {
         private readonly IDatabase _database;
-
         public CustomerBasketRepository(IConnectionMultiplexer redis) 
         {
             _database = redis.GetDatabase();

@@ -19,16 +19,16 @@ namespace Ecom.Api.Controllers.v1
         {
             try
             {
-                var products = await work.ProductRepository.GetAllAsync(productParams);
+                var Product = await work.ProductRepository
+                    .GetAllAsync(productParams);
 
-                return Ok(new Pagination<ProductDto>(productParams.PageNumber, productParams.MaxPageSize, products.TotalCount, products.products));
+                return Ok(new Pagination<ProductDto>(productParams.PageNumber, productParams.pageSize, productParams.TotalCount, Product));
             }
             catch (Exception ex)
             {
-                return BadRequest(new ResponseAPI(400, ex.Message));
 
+                return BadRequest(ex.Message);
             }
-
         }
 
         [HttpGet("{id}")]

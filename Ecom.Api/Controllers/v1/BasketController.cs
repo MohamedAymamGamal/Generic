@@ -19,7 +19,7 @@ namespace Ecom.Api.Controllers.v1
         public async Task<IActionResult> GetBasketItem(string id)
         {
             var result = await work.CustomerBasketRepository.GetBasketAsync(id);
-            if ( result == null)
+            if (result == null)
             {
                 return Ok(new CustomersBasket());
             }
@@ -31,7 +31,7 @@ namespace Ecom.Api.Controllers.v1
         public async Task<IActionResult> add(CustomersBasket basket)
         {
             var result = await work.CustomerBasketRepository.UpdateBasketAsync(basket);
-            return Ok(basket);
+            return Ok(result);
         }
 
         [HttpDelete("{id}")]

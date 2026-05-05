@@ -25,52 +25,52 @@ namespace Ecom.infrastructure.Reposities
             this.imageMangamentService = imageMangamentService;
         }
 
-        public async Task<ReturnProductDto> GetAllAsync(ProductParams productParams)
+        public async Task<IEnumerable<ProductDto>> GetAllAsync(ProductParams productParams)
+
         {
             var query = context.Products
-                .Include(m =>m.Category)
-                .Include(m =>m.Photos)
+                .Include(m => m.Category)
+                .Include(m => m.Photos)
                 .AsNoTracking();
-            //searching
+
+
+
+            //filtering by word
             if (!string.IsNullOrEmpty(productParams.Search))
             {
-                var search = productParams.Search.ToLower().Trim();
+                var searchWords = productParams.Search.Split(' ');
+                query = query.Where(m => searchWords.All(word =>
 
-                query = query.Where(m =>
-                    m.Name.ToLower().Contains(search) ||
-                    m.Description.ToLower().Contains(search)
-                );
+                m.Name.ToLower().Contains(word.ToLower()) ||
+                m.Description.ToLower().Contains(word.ToLower())
+
+                ));
             }
 
-            //filtering
+
+
+            //filtering by category Id
             if (productParams.CategoryId.HasValue)
+                query = query.Where(m => m.CategoryId == productParams.CategoryId);
+
+            if (!string.IsNullOrEmpty(productParams.Sort))
             {
-                query = query.Where(m => m.CategoryId == productParams.CategoryId.Value);
-            }
-            
-          
-            
-            
-            //sorting
-            if(!string.IsNullOrEmpty(productParams.Sort)){
                 query = productParams.Sort switch
                 {
-                    "name_desc" => query.OrderByDescending(m => m.Name),
-                    "price_asc" => query.OrderBy(m => m.NewPrice),
-                    "price_desc" => query.OrderByDescending(m => m.NewPrice),
-                    _ => query.OrderBy(m => m.Name)
+                    "PriceAce" => query.OrderBy(m => m.NewPrice),
+                    "PriceDce" => query.OrderByDescending(m => m.NewPrice),
+                    _ => query.OrderBy(m => m.Name),
                 };
             }
-           
-            //pagination
 
-            ReturnProductDto retrunProductDto = new ReturnProductDto();
-            retrunProductDto.TotalCount = query.Count();
-            
-            query = query.Skip(productParams.PageSize * (productParams.PageNumber - 1)).Take(productParams.PageSize);
+            productParams.TotalCount = query.Count();
 
-            retrunProductDto.products =  mapper.Map<List<ProductDto>>(query);
-            return retrunProductDto;
+            query = query.Skip((productParams.pageSize) * (productParams.PageNumber - 1)).Take(productParams.pageSize);
+
+
+            var result = mapper.Map<List<ProductDto>>(query);
+
+            return result;
         }
         public async Task<bool> AddAsync(AddProductDto addProductDto)
         {

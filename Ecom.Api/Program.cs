@@ -42,7 +42,7 @@ namespace Ecom.Api
 
 
             // Configure the HTTP request pipeline.
-
+            app.UseStaticFiles();  //stitic files
             ///policy for angular to access the api
             app.UseCors("CORSPolicy");       
             //app.UseHttpsRedirection();        

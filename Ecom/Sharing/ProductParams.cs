@@ -2,19 +2,21 @@
 {
     public class ProductParams
     {
-        public string? Sort { get; set; } = null;
-
+        public string? Sort { get; set; }
         public int? CategoryId { get; set; }
-        public int MaxPageSize { get; set; } = 10;
 
-        public string? Search { get; set; } = null;
-        private int ? _pageSize=1000;
-        public int PageSize
+        public int TotalCount { get; set; }
+
+        public string? Search { get; set; }
+        public int MaxPageSize { get; set; } = 200;
+        
+        private int _pageSize = 3;
+
+        public int pageSize
         {
-            get => _pageSize ?? MaxPageSize;
-            set => _pageSize = value > MaxPageSize ? MaxPageSize : value;
+            get { return _pageSize; }
+            set { _pageSize = value > MaxPageSize ? MaxPageSize : value; }
         }
-
         public int PageNumber { get; set; } = 1;
     }
 }

@@ -8,15 +8,15 @@ namespace Ecom.Core.Entities.CustomersBasket
     {
         public CustomersBasket()
         {
-        }
 
+        }
         public CustomersBasket(string id)
         {
-            Id = id;  
+            Id = id;
         }
-        public string Id { get; set; }
+        public string Id { get; set; } = string.Empty; //key
 
+        public List<BasketItem> basketItems { get; set; } = new List<BasketItem>(); //value
 
-        public List<BasketItem> basketItems { get; set; } = new();
     }
 }
