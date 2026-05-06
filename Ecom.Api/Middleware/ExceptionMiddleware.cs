@@ -13,7 +13,7 @@ namespace Ecom.Api.Middleware
 
         private readonly IMemoryCache _cache;
         private readonly IHostEnvironment _environment;
-        private readonly TimeSpan _rateLimit = TimeSpan.FromHours(30000000);
+        private readonly TimeSpan _rateLimit = TimeSpan.FromMinutes(6000);
         public ExceptionMiddleware(RequestDelegate next, IHostEnvironment environment, IMemoryCache cache)
         {
             _next = next;
@@ -21,7 +21,7 @@ namespace Ecom.Api.Middleware
             _cache = cache;
         }
         public async Task InvokeAsync(HttpContext context)
-        {
+        { 
             try
             {
                 ApplySecurityHeaders(context);
@@ -64,7 +64,7 @@ namespace Ecom.Api.Middleware
             });
             if (dateNow - timesTamp < _rateLimit)
             {
-                if (count >= 20)
+                if (count >= 2000000000)
                 {
                     return false;
                 }

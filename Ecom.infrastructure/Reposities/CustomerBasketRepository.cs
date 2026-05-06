@@ -24,6 +24,7 @@ namespace Ecom.infrastructure.Reposities
             if (!string.IsNullOrEmpty(result))
             {
                 return JsonSerializer.Deserialize<CustomersBasket>((string)result!);
+
             }
             return null;
         }
@@ -31,11 +32,10 @@ namespace Ecom.infrastructure.Reposities
         public async Task<CustomersBasket?> UpdateBasketAsync(CustomersBasket basket)
         {
             var _basket = await _database.StringSetAsync(basket.Id, JsonSerializer.Serialize(basket), TimeSpan.FromDays(3));
-            if (_basket)
-            {
-                return await GetBasketAsync(basket.Id);
-            }
-            return null;
+            
+            if (!_basket) return null;
+
+            return basket;
 
         }
     }
