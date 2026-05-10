@@ -30,6 +30,10 @@ namespace Ecom.infrastructure
             services.AddScoped(typeof(IGenericRepositry<>), typeof(GenericRepositry<>));
             //apply unit of work pattern 
             services.AddSingleton<IImageMangamentService, ImageMangamentService>();
+
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            services.AddScoped<IEmailService, EmailService>();
             //apply DbContext
             services.AddSingleton<IConfiguration>(configuration);
 
