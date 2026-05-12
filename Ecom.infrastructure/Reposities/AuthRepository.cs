@@ -16,11 +16,18 @@ namespace Ecom.infrastructure.Reposities
         private readonly UserManager<AppUser> _userManager;
         private readonly IEmailService _emailService;
         private readonly SignInManager<AppUser> _signInManager;
-        public AuthRepository(UserManager<AppUser> userManager, IEmailService emailService, SignInManager<AppUser> signInManager)
+        private readonly IGenrateToken _genrateToken;
+        public AuthRepository(UserManager<AppUser> userManager, 
+            IEmailService emailService, 
+            SignInManager<AppUser> signInManager,
+            IGenrateToken genrateToken
+            )
         {
             _userManager = userManager;
             _emailService = emailService;
             _signInManager = signInManager;
+            _genrateToken = genrateToken;
+
         }
 
         public async Task<string> RegisterAsync(RegisterDto registerDto)
@@ -60,7 +67,7 @@ namespace Ecom.infrastructure.Reposities
            
             return "nah i am done";
 
-
+             
         }
 
         public async Task SendEmail(string email, string code, string component, string subject, string message)
@@ -78,27 +85,81 @@ namespace Ecom.infrastructure.Reposities
             {
                 return null;
             }
-            var finduser = await _userManager.FindByEmailAsync(login.Email);
+            var findUser = await _userManager.FindByEmailAsync(login.Email);
 
-            if (!finduser.EmailConfirmed)
+            if (!findUser.EmailConfirmed)
             {
-                string token = await _userManager.GenerateEmailConfirmationTokenAsync(finduser);    
-                await SendEmail(finduser.Email, token, "active", "ActiveEmail", "Please active your email, click on button to active");
+                string token = await _userManager.GenerateEmailConfirmationTokenAsync(findUser);    
+                await SendEmail(findUser.Email, token, "active", "ActiveEmail", "Please active your email, click on button to active");
 
                 return "Please confirem your email first, we have send activat to your E-mail";
             }
 
-            var result = await _signInManager.CheckPasswordSignInAsync(finduser, login.Password, true);
+            var result = await _signInManager.CheckPasswordSignInAsync(findUser, login.Password, true);
 
             if (result.Succeeded)
             {
-                return "welcome back " + finduser.UserName;
+                return await _genrateToken.GetAndCreateToken(findUser);
             }
 
             return "please check your email and password, something went wrong";
         }
 
+          public async Task<bool> SendEmailForForgetPassword(string email )
+            {
 
+                var findUser = await _userManager.FindByEmailAsync(email);
+                if (findUser == null)
+                {
+                    return false;
+                }
+            else
+            {
+                string token = await _userManager.GeneratePasswordResetTokenAsync(findUser);
+                await SendEmail(findUser.Email, token, "reset", "Reset Password", "Please click on button to reset your password");
+            }
 
+            return true;
+            }
+
+        public async Task<string> ResetPassword(RestPasswordDto restPasswordDto)
+        {
+            var findUser = await _userManager.FindByEmailAsync(restPasswordDto.Email);
+            if (findUser == null)
+            {
+                return "User not found";
+            }
+            var result = await _userManager.ResetPasswordAsync(findUser, restPasswordDto.Token, restPasswordDto.Password);
+
+            if (result.Succeeded)
+            {
+                return "Password reset successfully";
+            }
+            else
+            {
+                return result.Errors.ToList()[0].Description;
+            }
+        }
+         //public async Task<string> ConfirmEmail(string email, string token)
+        public async Task<bool> ActiveAccount(ActiveAccountDto activeAccountDto)
+        {
+            var findUser = await _userManager.FindByEmailAsync(activeAccountDto.Email);
+
+            if (findUser == null)
+            {
+                return false;
+            }
+            var result = await _userManager.ConfirmEmailAsync(findUser, activeAccountDto.Token);
+            if (result.Succeeded) {
+
+                return true;
+            }
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(findUser);
+            await SendEmail(findUser.Email, token, "active", "ActiveEmail", "Please active your email, click on button to active");
+
+            return result.Succeeded;
+        }
+
+       
     }
     }

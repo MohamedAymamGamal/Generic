@@ -15,4 +15,15 @@ namespace Ecom.Core.DTO
         public string DisplayName { get; set; }
 
     }
+
+    public record RestPasswordDto: LoginDto
+    {
+        public string Token { get; set; }
+    }
+
+    public record ActiveAccountDto
+    {
+        public string Email { get; set; }
+        public string Token { get; set; }
+    }
 }

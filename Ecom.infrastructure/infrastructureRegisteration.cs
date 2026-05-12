@@ -32,7 +32,7 @@ namespace Ecom.infrastructure
             services.AddSingleton<IImageMangamentService, ImageMangamentService>();
 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-
+            services.AddScoped<IGenrateToken, GenrateToken>();
             services.AddScoped<IEmailService, EmailService>();
             //apply DbContext
             services.AddSingleton<IConfiguration>(configuration);

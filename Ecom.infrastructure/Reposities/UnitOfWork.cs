@@ -20,30 +20,33 @@ namespace Ecom.infrastructure.Reposities
         private readonly UserManager<AppUser> _userManager;
         private readonly IEmailService _emailService; 
         private readonly SignInManager<AppUser> _signInManager;
-        public UnitOfWork(ApplicationDbContext context, 
+        private readonly IGenrateToken Token;
+        public UnitOfWork(ApplicationDbContext context,
             IMapper mapper,
-            IImageMangamentService imageMangamentService, 
-            IConnectionMultiplexer connectionMultiplexer_redis, 
-            UserManager<AppUser> userManager , 
-            IEmailService emailService, 
-            SignInManager<AppUser> signInManager)
+            IImageMangamentService imageMangamentService,
+            IConnectionMultiplexer connectionMultiplexer_redis,
+            UserManager<AppUser> userManager,
+            IEmailService emailService,
+            SignInManager<AppUser> signInManager,
+            IGenrateToken token)
         {
             _context = context;
             _mapper = mapper;
             this._userManager = userManager;
             this._emailService = emailService;
             this._signInManager = signInManager;
+            this.Token = token;
             this._connectionMultiplexer_redis = connectionMultiplexer_redis;
-            
+
             _imageMangamentService = imageMangamentService;
-            ProductRepository = new ProductRepositry(_context,_mapper ,_imageMangamentService);
+            ProductRepository = new ProductRepositry(_context, _mapper, _imageMangamentService);
 
             CategoryRepository = new CategoryRepositry(_context);
 
             PhotoRepository = new PhotoRepoistory(_context);
 
             CustomerBasketRepository = new CustomerBasketRepository(connectionMultiplexer_redis);
-            Auth = new AuthRepository(_userManager, _emailService, _signInManager);
+            Auth = new AuthRepository(_userManager, _emailService, _signInManager, Token);
         }
 
         public IProductRepoistry ProductRepository { get; }
