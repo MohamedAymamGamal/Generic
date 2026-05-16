@@ -4,6 +4,7 @@ using Ecom.Core.Interfaces;
 using Ecom.Core.Service;
 using Ecom.infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,7 @@ namespace Ecom.infrastructure.Reposities
         private readonly IEmailService _emailService; 
         private readonly SignInManager<AppUser> _signInManager;
         private readonly IGenrateToken Token;
+        private readonly IConfiguration _configuration;
         public UnitOfWork(ApplicationDbContext context,
             IMapper mapper,
             IImageMangamentService imageMangamentService,
@@ -28,7 +30,9 @@ namespace Ecom.infrastructure.Reposities
             UserManager<AppUser> userManager,
             IEmailService emailService,
             SignInManager<AppUser> signInManager,
-            IGenrateToken token)
+            IGenrateToken token,
+            IConfiguration configuration
+            )
         {
             _context = context;
             _mapper = mapper;
@@ -36,6 +40,8 @@ namespace Ecom.infrastructure.Reposities
             this._emailService = emailService;
             this._signInManager = signInManager;
             this.Token = token;
+            this._configuration = configuration;
+
             this._connectionMultiplexer_redis = connectionMultiplexer_redis;
 
             _imageMangamentService = imageMangamentService;
@@ -46,7 +52,7 @@ namespace Ecom.infrastructure.Reposities
             PhotoRepository = new PhotoRepoistory(_context);
 
             CustomerBasketRepository = new CustomerBasketRepository(connectionMultiplexer_redis);
-            Auth = new AuthRepository(_userManager, _emailService, _signInManager, Token);
+            Auth = new AuthRepository(_userManager, _emailService, _signInManager, Token, _configuration);
         }
 
         public IProductRepoistry ProductRepository { get; }

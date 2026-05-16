@@ -9,7 +9,8 @@ namespace Ecom.Core.Entities.Identity
     {
         public string DispalyName { get; set; }
 
-
+        public short? OtpCode { get; set; }
+        public DateTime? OtpExpiry { get; set; }
         public Address? Address { get; set; }
 
 

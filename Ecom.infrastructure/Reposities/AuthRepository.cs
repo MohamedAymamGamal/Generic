@@ -3,11 +3,8 @@ using Ecom.Core.Entities.Identity;
 using Ecom.Core.Interfaces;
 using Ecom.Core.Service;
 using Ecom.Core.Sharing;
-using Ecom.infrastructure.Reposities.Service;
 using Microsoft.AspNetCore.Identity;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.Extensions.Configuration;
 
 namespace Ecom.infrastructure.Reposities
 {
@@ -17,149 +14,181 @@ namespace Ecom.infrastructure.Reposities
         private readonly IEmailService _emailService;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly IGenrateToken _genrateToken;
-        public AuthRepository(UserManager<AppUser> userManager, 
-            IEmailService emailService, 
+        private readonly IConfiguration _configuration;
+
+        private static readonly TimeSpan OtpLifetime = TimeSpan.FromMinutes(10);
+
+        public AuthRepository(
+            UserManager<AppUser> userManager,
+            IEmailService emailService,
             SignInManager<AppUser> signInManager,
-            IGenrateToken genrateToken
+            IGenrateToken genrateToken,
+            IConfiguration configrtion
             )
         {
             _userManager = userManager;
             _emailService = emailService;
             _signInManager = signInManager;
             _genrateToken = genrateToken;
-
+            _configuration = configrtion;
         }
 
-        public async Task<string> RegisterAsync(RegisterDto registerDto)
+        // ─── Register ────────────────────────────────────────────────────────────
+        public async Task<string> RegisterAsync(RegisterDto registerDTO)
         {
+            if (registerDTO == null) return null;
 
-            if (registerDto == null)
+            if (await _userManager.FindByNameAsync(registerDTO.UserName) is not null)
+                return "This username is already registered.";
+
+            if (await _userManager.FindByEmailAsync(registerDTO.Email) is not null)
+                return "This email is already registered.";
+
+            var user = new AppUser
             {
-                return null;
-
-            }
-            if (await _userManager.FindByNameAsync(registerDto.UserName) != null)
-            {
-                return "UserName already exists";
-            }
-            if (await _userManager.FindByEmailAsync(registerDto.Email) != null)
-            {
-
-                return "Email already exists";
-
-
-            }
-            AppUser user = new AppUser()
-            {
-                Email = registerDto.Email,
-                UserName = registerDto.UserName
+                Email = registerDTO.Email,
+                UserName = registerDTO.UserName,
+                DispalyName = registerDTO.DisplayName,
             };
-            var IdentityResult = await _userManager.CreateAsync(user, registerDto.Password);
-            if(IdentityResult.Succeeded is not true)
-            {
-                return IdentityResult.Errors.ToList()[0].Description;
-            }
-            string token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            SendEmail(user.Email,
-                token,  
-                "Welcome", "Welcome to Ecom", 
-                "We are glad to have you here").Wait();
-           
-            return "nah i am done";
 
-             
+            var result = await _userManager.CreateAsync(user, registerDTO.Password);
+            if (!result.Succeeded)
+                return result.Errors.First().Description;
+
+            await IssueAndSendOtp(user, purpose: "active");
+
+            return await _genrateToken.GetAndCreateToken(user);
+        }
+
+        // ─── Login ───────────────────────────────────────────────────────────────
+        public async Task<string> LoginAsync(LoginDto login)
+        {
+            if (login == null) return null;
+
+            var user = await _userManager.FindByEmailAsync(login.Email);
+            if (user == null)
+                return "Please check your email and password.";
+
+            if (!user.EmailConfirmed)
+            {
+                await IssueAndSendOtp(user, purpose: "active");
+                return "Please confirm your email first. A new OTP has been sent to your inbox.";
+            }
+
+            var result = await _signInManager.CheckPasswordSignInAsync(user, login.Password, lockoutOnFailure: true);
+            if (result.Succeeded)
+                return await _genrateToken.GetAndCreateToken(user);
+
+            return "Please check your email and password.";
+        }
+
+        // ─── Forget Password ─────────────────────────────────────────────────────
+        public async Task<bool> SendEmailForForgetPassword(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return false;
+
+            await IssueAndSendOtp(user, purpose: "reset");
+            return true;
+        }
+
+        // ─── Reset Password ──────────────────────────────────────────────────────
+        public async Task<string> ResetPassword(RestPasswordDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null) return "User not found.";
+
+            if (!IsOtpValid(user, dto.Token))
+                return "Invalid or expired OTP.";
+
+            // Remove the password and set the new one directly
+            var removeResult = await _userManager.RemovePasswordAsync(user);
+            if (!removeResult.Succeeded)
+                return removeResult.Errors.First().Description;
+
+            var addResult = await _userManager.AddPasswordAsync(user, dto.Password);
+            if (!addResult.Succeeded)
+                return addResult.Errors.First().Description;
+
+            ClearOtp(user);
+            await _userManager.UpdateAsync(user);
+            return "Password reset successfully.";
+        }
+
+        // ─── Active Account (email confirmation via OTP) ──────────────────────────
+        public async Task<bool> ActiveAccount(ActiveAccountDto dto)
+        {
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null) return false;
+
+            if (!IsOtpValid(user, dto.Token))
+            {
+                // OTP wrong / expired → issue a fresh one
+                await IssueAndSendOtp(user, purpose: "active");
+                return false;
+            }
+
+            user.EmailConfirmed = true;
+            ClearOtp(user);
+            await _userManager.UpdateAsync(user);
+            return true;
+        }
+
+        // ─── Helpers ─────────────────────────────────────────────────────────────
+
+        /// <summary>Generates a new OTP, persists it on the user, and emails it.</summary>
+        private async Task IssueAndSendOtp(AppUser user, string purpose)
+        {
+            short otp = CreateOTP();
+            user.OtpCode = otp;
+            user.OtpExpiry = DateTime.UtcNow.Add(OtpLifetime);
+            await _userManager.UpdateAsync(user);
+
+            string otpString = otp.ToString();
+
+            // Fixed: use separate variables instead of tuple deconstruction
+            string subject = purpose == "reset" ? "Reset Password" : "Activate Account";
+            string message = purpose == "reset"
+                ? "Use the code below to reset your password:"
+                : "Use the code below to activate your account:";
+
+            var emailDto = new EmailDto(
+                user.Email,
+                _configuration["EmailSetting:From"],   // or hardcode sender
+                subject,
+                EmailStringBody.Send(user.Email, otpString, message)
+            );
+
+            await _emailService.SendEmail(emailDto);
+        }
+        private static bool IsOtpValid(AppUser user, string submittedOtp)
+        {
+            return user.OtpCode != null
+                && user.OtpExpiry != null
+                && user.OtpExpiry > DateTime.UtcNow
+                && user.OtpCode.ToString() == submittedOtp;
+        }
+
+        private static void ClearOtp(AppUser user)
+        {
+            user.OtpCode = null;
+            user.OtpExpiry = null;
+        }
+
+        private short CreateOTP()
+        {
+            return (short)Random.Shared.Next(100000, 999999);
         }
 
         public async Task SendEmail(string email, string code, string component, string subject, string message)
         {
-            var result = new EmailDto(email,
-                "ma7048710@gmail.com",
-                subject
-                , EmailStringBody.send(email, code, component, message));
-            await _emailService.SendEmail(result);
+            var dto = new EmailDto(
+                email,
+                _configuration["EmailSetting:From"],
+                subject,
+                EmailStringBody.Send(email, code, message));
+
+            await _emailService.SendEmail(dto);
         }
-
-        public async Task<string> LoginAsync(LoginDto login)
-        {
-            if (login == null)
-            {
-                return null;
-            }
-            var findUser = await _userManager.FindByEmailAsync(login.Email);
-
-            if (!findUser.EmailConfirmed)
-            {
-                string token = await _userManager.GenerateEmailConfirmationTokenAsync(findUser);    
-                await SendEmail(findUser.Email, token, "active", "ActiveEmail", "Please active your email, click on button to active");
-
-                return "Please confirem your email first, we have send activat to your E-mail";
-            }
-
-            var result = await _signInManager.CheckPasswordSignInAsync(findUser, login.Password, true);
-
-            if (result.Succeeded)
-            {
-                return await _genrateToken.GetAndCreateToken(findUser);
-            }
-
-            return "please check your email and password, something went wrong";
-        }
-
-          public async Task<bool> SendEmailForForgetPassword(string email )
-            {
-
-                var findUser = await _userManager.FindByEmailAsync(email);
-                if (findUser == null)
-                {
-                    return false;
-                }
-            else
-            {
-                string token = await _userManager.GeneratePasswordResetTokenAsync(findUser);
-                await SendEmail(findUser.Email, token, "reset", "Reset Password", "Please click on button to reset your password");
-            }
-
-            return true;
-            }
-
-        public async Task<string> ResetPassword(RestPasswordDto restPasswordDto)
-        {
-            var findUser = await _userManager.FindByEmailAsync(restPasswordDto.Email);
-            if (findUser == null)
-            {
-                return "User not found";
-            }
-            var result = await _userManager.ResetPasswordAsync(findUser, restPasswordDto.Token, restPasswordDto.Password);
-
-            if (result.Succeeded)
-            {
-                return "Password reset successfully";
-            }
-            else
-            {
-                return result.Errors.ToList()[0].Description;
-            }
-        }
-         //public async Task<string> ConfirmEmail(string email, string token)
-        public async Task<bool> ActiveAccount(ActiveAccountDto activeAccountDto)
-        {
-            var findUser = await _userManager.FindByEmailAsync(activeAccountDto.Email);
-
-            if (findUser == null)
-            {
-                return false;
-            }
-            var result = await _userManager.ConfirmEmailAsync(findUser, activeAccountDto.Token);
-            if (result.Succeeded) {
-
-                return true;
-            }
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(findUser);
-            await SendEmail(findUser.Email, token, "active", "ActiveEmail", "Please active your email, click on button to active");
-
-            return result.Succeeded;
-        }
-
-       
     }
-    }
+}

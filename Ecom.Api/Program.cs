@@ -13,6 +13,7 @@ namespace Ecom.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
+
             // Add services to the container.
             builder.Services.AddMemoryCache();
             builder.Services.AddControllers();
@@ -48,6 +49,7 @@ namespace Ecom.Api
             //app.UseHttpsRedirection();        
             app.UseMiddleware<ExceptionMiddleware>();
             app.UseStatusCodePagesWithReExecute("/errors/{0}");
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
 

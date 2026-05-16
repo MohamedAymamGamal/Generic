@@ -1,34 +1,44 @@
 ﻿using Ecom.Core.DTO;
 using Ecom.Core.Service;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Ecom.infrastructure.Reposities.Service
 {
-   
     public class EmailService : IEmailService
     {
-        private readonly IConfiguration configuration;
+        private readonly IConfiguration _configuration;
+
         public EmailService(IConfiguration configuration)
         {
-            this.configuration = configuration;
+            _configuration = configuration;
         }
-        public Task SendEmail(EmailDto emailDto)
+
+        public async Task SendEmail(EmailDto emailDto)
         {
-             MimeMessage message = new MimeMessage();
-
-
-            message.From.Add(new MailboxAddress("My Ecom", configuration["EmailSetting:From"]));
-            message.Subject = emailDto.Subject;
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress("My Ecom", _configuration["EmailSetting:From"]));
             message.To.Add(new MailboxAddress(emailDto.To, emailDto.To));
+            message.Subject = emailDto.Subject;
             message.Body = new TextPart(MimeKit.Text.TextFormat.Html)
             {
-                Text = emailDto.Contant   
+                Text = emailDto.Contant
             };
-            return Task.CompletedTask;
+
+            using var client = new SmtpClient();
+            await client.ConnectAsync(
+                _configuration["EmailSetting:Smtp"],
+                int.Parse(_configuration["EmailSetting:Port"]!),
+                SecureSocketOptions.SslOnConnect
+            );
+            await client.AuthenticateAsync(
+                _configuration["EmailSetting:Username"],
+                _configuration["EmailSetting:Password"]
+            );
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
         }
     }
 }
