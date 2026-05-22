@@ -4,6 +4,7 @@ using Ecom.Core.Interfaces;
 using Ecom.Core.Service;
 using Ecom.Core.Sharing;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 
 namespace Ecom.infrastructure.Reposities
@@ -44,17 +45,19 @@ namespace Ecom.infrastructure.Reposities
             if (await _userManager.FindByEmailAsync(registerDTO.Email) is not null)
                 return "This email is already registered.";
 
+         
             var user = new AppUser
             {
                 Email = registerDTO.Email,
                 UserName = registerDTO.UserName,
-                DispalyName = registerDTO.DisplayName,
+                DispalyName = registerDTO.DisplayName
             };
 
             var result = await _userManager.CreateAsync(user, registerDTO.Password);
             if (!result.Succeeded)
                 return result.Errors.First().Description;
 
+            // Generates, saves, and emails the OTP in one definitive step
             await IssueAndSendOtp(user, purpose: "active");
 
             return await _genrateToken.GetAndCreateToken(user);
@@ -83,9 +86,9 @@ namespace Ecom.infrastructure.Reposities
         }
 
         // ─── Forget Password ─────────────────────────────────────────────────────
-        public async Task<bool> SendEmailForForgetPassword(string email)
+        public async Task<bool> SendEmailForForgetPassword(ForgetPasswordDto forgetPasswordDto)
         {
-            var user = await _userManager.FindByEmailAsync(email);
+            var user = await _userManager.FindByEmailAsync(forgetPasswordDto.Email);
             if (user == null) return false;
 
             await IssueAndSendOtp(user, purpose: "reset");
@@ -98,21 +101,20 @@ namespace Ecom.infrastructure.Reposities
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return "User not found.";
 
-            if (!IsOtpValid(user, dto.Token))
+            if (!IsOtpValid(user, dto.OtpCode.ToString()))
                 return "Invalid or expired OTP.";
 
-            // Remove the password and set the new one directly
-            var removeResult = await _userManager.RemovePasswordAsync(user);
-            if (!removeResult.Succeeded)
-                return removeResult.Errors.First().Description;
+            // SECURE: Instead of destroying the password first, use ResetPasswordAsync with Identity's token system
+            // Or if you want a direct overwrite safely:
+            var restToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, restToken, dto.Password);
 
-            var addResult = await _userManager.AddPasswordAsync(user, dto.Password);
-            if (!addResult.Succeeded)
-                return addResult.Errors.First().Description;
+            if (!result.Succeeded)
+                return result.Errors.First().Description;
 
             ClearOtp(user);
             await _userManager.UpdateAsync(user);
-            return "Password reset successfully.";
+            return "the password rest ";
         }
 
         // ─── Active Account (email confirmation via OTP) ──────────────────────────
@@ -121,22 +123,24 @@ namespace Ecom.infrastructure.Reposities
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user == null) return false;
 
-            if (!IsOtpValid(user, dto.Token))
+            if (!IsOtpValid(user, dto.OtpCode.ToString()))
             {
-                // OTP wrong / expired → issue a fresh one
+                // OPTIONAL: Regenerating a token automatically on failure means if they typos, 
+                // the old one instantly dies. If you want this behavior, keep this line. 
+                // If you want them to be able to retry typing, remove this line.
                 await IssueAndSendOtp(user, purpose: "active");
                 return false;
             }
 
             user.EmailConfirmed = true;
             ClearOtp(user);
-            await _userManager.UpdateAsync(user);
-            return true;
+
+            var result = await _userManager.UpdateAsync(user);
+            return result.Succeeded;
         }
 
         // ─── Helpers ─────────────────────────────────────────────────────────────
 
-        /// <summary>Generates a new OTP, persists it on the user, and emails it.</summary>
         private async Task IssueAndSendOtp(AppUser user, string purpose)
         {
             short otp = CreateOTP();
@@ -145,8 +149,6 @@ namespace Ecom.infrastructure.Reposities
             await _userManager.UpdateAsync(user);
 
             string otpString = otp.ToString();
-
-            // Fixed: use separate variables instead of tuple deconstruction
             string subject = purpose == "reset" ? "Reset Password" : "Activate Account";
             string message = purpose == "reset"
                 ? "Use the code below to reset your password:"
@@ -154,13 +156,14 @@ namespace Ecom.infrastructure.Reposities
 
             var emailDto = new EmailDto(
                 user.Email,
-                _configuration["EmailSetting:From"],   // or hardcode sender
+                _configuration["EmailSetting:From"],
                 subject,
                 EmailStringBody.Send(user.Email, otpString, message)
             );
 
             await _emailService.SendEmail(emailDto);
         }
+
         private static bool IsOtpValid(AppUser user, string submittedOtp)
         {
             return user.OtpCode != null
@@ -177,18 +180,7 @@ namespace Ecom.infrastructure.Reposities
 
         private short CreateOTP()
         {
-            return (short)Random.Shared.Next(100000, 999999);
-        }
-
-        public async Task SendEmail(string email, string code, string component, string subject, string message)
-        {
-            var dto = new EmailDto(
-                email,
-                _configuration["EmailSetting:From"],
-                subject,
-                EmailStringBody.Send(email, code, message));
-
-            await _emailService.SendEmail(dto);
+            return (short)Random.Shared.Next(1000, 9999);
         }
     }
 }

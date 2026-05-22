@@ -3,6 +3,7 @@ using Ecom.Api.Helper;
 using Ecom.Core.DTO;
 using Ecom.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Win32;
 
 namespace Ecom.Api.Controllers.v1
 {
@@ -19,12 +20,12 @@ namespace Ecom.Api.Controllers.v1
 
         public async Task<IActionResult> Register(RegisterDto registerDto)
         {
-            var token = await work.Auth.RegisterAsync(registerDto);
+            var register = await work.Auth.RegisterAsync(registerDto);
 
-            if (token == null || token.Contains(" ")) 
-                return BadRequest(new { status = 400, message = "Registration failed", token });
+            if (register == null || register.Contains(" ")) 
+                return BadRequest(new { status = 400, message = register });
 
-            return Ok(new ResponseAPI(200, "Registration successful. Please check your email to confirm your account.",token));
+            return Ok(new ResponseAPI(200, message: "the user has been registered successfully.", token: register));
 
         }
         [HttpPost("login")]
@@ -51,10 +52,9 @@ namespace Ecom.Api.Controllers.v1
 
         }
         [HttpPost("forget-password")]
-
-        public async Task<IActionResult> ForgetPassword(string email)
+        public async Task<IActionResult> ForgetPassword(ForgetPasswordDto forgetPasswordDto)
         {
-            var result = await work.Auth.SendEmailForForgetPassword(email);
+            var result = await work.Auth.SendEmailForForgetPassword(forgetPasswordDto);
             if (result is not true)
             {
                 return BadRequest(new ResponseAPI(400, "Email not found"));
@@ -62,12 +62,13 @@ namespace Ecom.Api.Controllers.v1
             return Ok(new ResponseAPI(200, "Email sent successfully"));
         }
 
+        [HttpPost("rest-password")]
         public async Task<IActionResult> ResetPassword(RestPasswordDto restPasswordDto)
         {
             var result = await work.Auth.ResetPassword(restPasswordDto);
             if (result == null)
             {
-                return BadRequest(new ResponseAPI(400, "Invalid token or email"));
+                return BadRequest(new ResponseAPI(400, "Invalid token or email" )) ;
             }
             return Ok(new ResponseAPI(200, result));
         }
@@ -78,15 +79,18 @@ namespace Ecom.Api.Controllers.v1
         public async Task<ActionResult<ActiveAccountDto>> active(ActiveAccountDto accountDTO)
         {
             var result = await work.Auth.ActiveAccount(accountDTO);
-            return result ? Ok(new ResponseAPI(200)) : BadRequest(new ResponseAPI(200));
-        }
 
-        [HttpGet("send-email-forget-password")]
-        public async Task<IActionResult> forget(string email)
-        {
-            var result = await work.Auth.SendEmailForForgetPassword(email);
-            return result ? Ok(new ResponseAPI(200)) : BadRequest(new ResponseAPI(200));
-        }
+            return result
+                 ? Ok(new ResponseAPI(200, message: "Account activated successfully."))
+                 : BadRequest(new ResponseAPI(400, message: "Invalid or expired OTP. A new code has been sent to your email."));
+         }
+
+
+        //public async Task<IActionResult> forget(ForgetPasswordDto forgetPasswordDto)
+        //{
+        //    var result = await work.Auth.SendEmailForForgetPassword(forgetPasswordDto);
+        //    return result ? Ok(new ResponseAPI(200)) : BadRequest(new ResponseAPI(200));
+        //}
 
 
         [HttpPost("logout")]
@@ -98,9 +102,11 @@ namespace Ecom.Api.Controllers.v1
                 Secure = true,
                 SameSite = SameSiteMode.None,
                 IsEssential = true,
-                Domain = "localhost",
             });
             return Ok(new ResponseAPI(200, "Logged out successfully"));
         }
     }
 }
+
+
+

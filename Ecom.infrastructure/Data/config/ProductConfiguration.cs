@@ -13,11 +13,10 @@ namespace Ecom.infrastructure.Data.config
         {
             builder.Property(x => x.Id).IsRequired();
             builder.Property(x => x.Name)
-                    
+
                    .IsRequired()
                    .HasMaxLength(30);
-            builder.HasIndex(x => x.Name).IsUnique();
-
+            builder.HasIndex(x => x.Name).IsUnique(false);
             builder.Property(x => x.Description).IsRequired();
             builder.Property(x => x.NewPrice).HasColumnType("decimal(18,2)");
             builder.Property(x => x.OldPrice).HasColumnType("decimal(18,2)");

@@ -1,4 +1,5 @@
 ﻿using Ecom.Core.DTO;
+using Ecom.Core.Entities.Identity;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,7 +10,7 @@ namespace Ecom.Core.Interfaces
     {
         Task<string> RegisterAsync(RegisterDto registerDto);
         Task<string> LoginAsync(LoginDto login);
-        Task<bool> SendEmailForForgetPassword(string email);
+        Task<bool> SendEmailForForgetPassword(ForgetPasswordDto forgetPasswordDto);
         Task<string> ResetPassword(RestPasswordDto restPasswordDto);
         Task<bool> ActiveAccount(ActiveAccountDto accountDto);  
 
