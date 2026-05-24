@@ -62,15 +62,26 @@ namespace Ecom.Api.Controllers.v1
             return Ok(new ResponseAPI(200, "Email sent successfully"));
         }
 
-        [HttpPost("rest-password")]
+        [HttpPost("verify-otp")]
+        public async Task<IActionResult> VerifyOtp(verifyOtpDto verifyOtpDto)
+        {
+            var result = await work.Auth.verifyOpt(verifyOtpDto);
+            if (result == null)
+            {
+                return BadRequest(new ResponseAPI(400, "Invalid OTP or email"));
+            }
+            return Ok(new ResponseAPI(200, token: result ,message: "the opt is vaild"));
+        }
+
+        [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword(RestPasswordDto restPasswordDto)
         {
-            var result = await work.Auth.ResetPassword(restPasswordDto);
+            var result = await work.Auth.ResetPassword(restPasswordDto, restPasswordDto.token);
             if (result == null)
             {
                 return BadRequest(new ResponseAPI(400, "Invalid token or email" )) ;
             }
-            return Ok(new ResponseAPI(200, result));
+            return Ok(new ResponseAPI(200, message: result));
         }
 
 

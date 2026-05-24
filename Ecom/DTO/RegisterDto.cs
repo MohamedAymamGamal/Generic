@@ -14,7 +14,8 @@ namespace Ecom.Core.DTO
         public string UserName { get; set; }
         public string DisplayName { get; set; }
 
-     
+        public string PhoneNumber { get; set; }
+
 
     }
     public record ForgetPasswordDto
@@ -22,9 +23,16 @@ namespace Ecom.Core.DTO
         public string Email { get; set; }
     }
 
-    public record RestPasswordDto: LoginDto
+    public record RestPasswordDto : LoginDto
     {
-        public short? OtpCode { get; set; }     
+        public string token { get; set; }
+
+
+    }
+    public record verifyOtpDto
+    {
+        public string Email { get; set; }
+        public short? OtpCode { get; set; }
         public DateTime? OtpExpiry { get; set; }
     }
 

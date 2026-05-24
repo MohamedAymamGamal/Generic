@@ -11,8 +11,10 @@ namespace Ecom.Core.Interfaces
         Task<string> RegisterAsync(RegisterDto registerDto);
         Task<string> LoginAsync(LoginDto login);
         Task<bool> SendEmailForForgetPassword(ForgetPasswordDto forgetPasswordDto);
-        Task<string> ResetPassword(RestPasswordDto restPasswordDto);
-        Task<bool> ActiveAccount(ActiveAccountDto accountDto);  
+        Task<string> ResetPassword(RestPasswordDto restPasswordDto,string token);
+        Task<bool> ActiveAccount(ActiveAccountDto accountDto);
+
+        Task<string> verifyOpt(verifyOtpDto dto);
 
     }
 }

@@ -50,7 +50,8 @@ namespace Ecom.infrastructure.Reposities
             {
                 Email = registerDTO.Email,
                 UserName = registerDTO.UserName,
-                DispalyName = registerDTO.DisplayName
+                DispalyName = registerDTO.DisplayName,
+                PhoneNumber = registerDTO.PhoneNumber
             };
 
             var result = await _userManager.CreateAsync(user, registerDTO.Password);
@@ -94,28 +95,40 @@ namespace Ecom.infrastructure.Reposities
             await IssueAndSendOtp(user, purpose: "reset");
             return true;
         }
-
-        // ─── Reset Password ──────────────────────────────────────────────────────
-        public async Task<string> ResetPassword(RestPasswordDto dto)
+        public async Task<string> verifyOpt(verifyOtpDto dto)
         {
             var user = await _userManager.FindByEmailAsync(dto.Email);
-            if (user == null) return "User not found.";
+            if (user == null) return null;
+
 
             if (!IsOtpValid(user, dto.OtpCode.ToString()))
-                return "Invalid or expired OTP.";
+            {
+                return null;
+            }
 
-            // SECURE: Instead of destroying the password first, use ResetPasswordAsync with Identity's token system
-            // Or if you want a direct overwrite safely:
-            var restToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-            var result = await _userManager.ResetPasswordAsync(user, restToken, dto.Password);
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            ClearOtp(user);
+            await _userManager.UpdateAsync(user);
+
+            return resetToken;
+        }
+
+        // ─── Reset Password ──────────────────────────────────────────────────────
+        public async Task<string> ResetPassword(RestPasswordDto restPasswordDto, string token)
+        {
+            var user = await _userManager.FindByEmailAsync(restPasswordDto.Email);
+            if (user == null) return "User not found.";
+
+            var result = await _userManager.ResetPasswordAsync(user, restPasswordDto.token, restPasswordDto.Password);
 
             if (!result.Succeeded)
                 return result.Errors.First().Description;
 
-            ClearOtp(user);
             await _userManager.UpdateAsync(user);
             return "the password rest ";
         }
+    
 
         // ─── Active Account (email confirmation via OTP) ──────────────────────────
         public async Task<bool> ActiveAccount(ActiveAccountDto dto)
