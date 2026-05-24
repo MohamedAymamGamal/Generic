@@ -1,5 +1,8 @@
 <Solution>
   <Folder Name="/src/">
+    <File Path=".env" />
+    <File Path="docker-compose.yml" />
+    <File Path="dockerfile" />
     <Project Path="Ecom.Api/Ecom.Api.csproj" />
     <Project Path="Ecom.infrastructure/Ecom.infrastructure.csproj" />
     <Project Path="Ecom/Ecom.Core.csproj" />
