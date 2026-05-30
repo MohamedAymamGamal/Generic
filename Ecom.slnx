@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/.devcontainer/">
+    <File Path="devcontainer.json" />
+  </Folder>
   <Folder Name="/src/">
     <File Path=".env" />
     <File Path="docker-compose.yml" />

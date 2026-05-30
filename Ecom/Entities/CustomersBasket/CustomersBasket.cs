@@ -16,6 +16,8 @@ namespace Ecom.Core.Entities.CustomersBasket
         }
         public string Id { get; set; } = string.Empty; //key
 
+        //public string PaymentIntentId { get; set; }
+
         public List<BasketItem> basketItems { get; set; } = new List<BasketItem>(); //value
 
     }

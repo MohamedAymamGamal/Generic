@@ -1,0 +1,67 @@
+{
+  "name": "Ecom Dev",
+  "dockerComposeFile": "../src/docker-compose.yml",
+
+  // 1. MUST match the lowercase service name in docker-compose.yml
+  "service": "api",
+
+  // 2. This is the root folder where Ecom.slnx sits
+  "workspaceFolder": "/src",
+
+  "shutdownAction": "stopCompose",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csharp",
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.vscodeintellicode-csharp",
+        "jmrog.vscode-nuget-package-manager",
+        "ms-azuretools.vscode-docker",
+        "humao.rest-client",
+        "editorconfig.editorconfig",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "dotnet.defaultSolution": "/src/Ecom.slnx",
+        "csharp.solution": "/src/Ecom.slnx",
+        "editor.formatOnSave": true,
+        "[csharp]": {
+          "editor.defaultFormatter": "ms-dotnettools.csharp"
+        },
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": { "path": "/bin/bash" }
+        },
+        "files.watcherExclude": {
+          "**/bin/**": true,
+          "**/obj/**": true,
+          "**/.git/**": true
+        }
+      }
+    }
+  },
+
+  "forwardPorts": [ 8080, 1433, 6379, 5540 ],
+  "portsAttributes": {
+    "8080": {
+      "label": "Api",
+      "onAutoForward": "silent"
+    },
+    "1433": {
+      "label": "SQL Server",
+      "onAutoForward": "silent"
+    },
+    "6379": {
+      "label": "Redis",
+      "onAutoForward": "silent"
+    },
+    "5540": {
+      "label": "RedisInsight",
+      "onAutoForward": "silent"
+    }
+  },
+
+  // 3. Targets the slnx file at the root /src level
+  "postStartCommand": "dotnet restore /src/Ecom.slnx"
+}

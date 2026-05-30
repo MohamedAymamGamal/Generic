@@ -53,12 +53,14 @@ services:
       Token__Issuer: "http://localhost:8080"
 
     volumes:
-      # ── Full solution mounted → dotnet watch sees every change ──
-      - .:/src                               
+      - .:/src
       # ── NuGet cache persisted → restore only on new packages ───
-      - nuget-cache:/root/.nuget/packages    
+      - nuget-cache:/root/.nuget/packages
       # ── Logs ────────────────────────────────────────────────────
-      - ./logs:/src/Ecom.API/logs
+      - ./logs:/src/Ecom.Api/logs
+      # ── Uploaded images persist on host → survive container restart
+      - ./uploads:/src/Ecom.Api/wwwroot/Images
+
 
     depends_on:
       sqlserver:
@@ -101,12 +103,14 @@ services:
     container_name: ecom-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"       # connect from RedisInsight on host
-    command: >
+      - "6379:6379"
+    command: 
       redis-server
       --requirepass ${REDIS_PASSWORD}
       --save 60 1
       --loglevel warning
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}    
     volumes:
       - redis-data:/data
     healthcheck:
@@ -123,10 +127,15 @@ services:
     container_name: ecom-redis-insight
     restart: unless-stopped
     ports:
-      - "5540:5540"       # http://localhost:5540
+      - "5540:5540"#http://localhost:5540
+    environment:
+      - RI_REDIS_HOST=ecom-redis            # ← point to redis container
+      - RI_REDIS_PORT=6379 
+      - RI_REDIS_PASSWORD=${REDIS_PASSWORD} # ← pass the password
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy          # ← wait until redis is ready
     networks:
       - ecom-net
     profiles:
-      - tools             # docker compose --profile tools up
+      - tools

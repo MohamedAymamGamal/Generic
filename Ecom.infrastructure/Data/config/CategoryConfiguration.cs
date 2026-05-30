@@ -21,6 +21,8 @@ namespace Ecom.infrastructure.Data.config
             builder.HasData(
                     new Category { Id = 1, Name = "Electronics" }
                 );
+
+           
         }
     }
 }

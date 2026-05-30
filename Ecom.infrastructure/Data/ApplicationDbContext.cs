@@ -1,4 +1,5 @@
 ﻿using Ecom.Core.Entities.Identity;
+using Ecom.Core.Entities.Order;
 using Ecom.Core.Entities.Product;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -19,6 +20,11 @@ namespace Ecom.infrastructure.Data
         public virtual DbSet<Photo> Photos { get; set; } 
         public virtual DbSet<Product> Products { get; set; }
          
+        public virtual DbSet<Order> Orders { get; set; }
+
+        public virtual DbSet<OrderItems> OrderItems { get; set; }
+
+        public virtual DbSet<DeliveryMethod> DeliveryMethods { get; set; }
         public virtual DbSet<Address> Addresses { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
             base.OnModelCreating(modelBuilder);
