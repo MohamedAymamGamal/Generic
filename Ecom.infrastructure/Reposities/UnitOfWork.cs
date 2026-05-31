@@ -51,6 +51,8 @@ namespace Ecom.infrastructure.Reposities
 
             PhotoRepository = new PhotoRepoistory(_context);
 
+            RatingRepository = new RatingRepositry(_context);
+
             CustomerBasketRepository = new CustomerBasketRepository(connectionMultiplexer_redis);
             Auth = new AuthRepository(_userManager, _emailService, _signInManager, Token, _configuration);
         }
@@ -60,8 +62,11 @@ namespace Ecom.infrastructure.Reposities
         public ICategoryRepositry CategoryRepository { get; }
         public IPhotoRepositry PhotoRepository { get; }
 
+        public IRatingRepositry RatingRepository { get; }
+
         public ICustomerBasketRepository CustomerBasketRepository { get; }
 
         public IAuth Auth { get; }
+
     }
 }

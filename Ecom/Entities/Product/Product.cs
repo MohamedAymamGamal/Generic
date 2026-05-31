@@ -12,10 +12,9 @@ namespace Ecom.Core.Entities.Product
         public decimal? OldPrice { get; set; }
         public virtual List<Photo> Photos { get; set; } 
         public int CategoryId { get; set; }
-
         [ForeignKey(nameof(CategoryId))]
 
         public virtual Category? Category { get; set; }
-
+        public virtual ICollection<ProductRating> Ratings { get; set; } = new List<ProductRating>();
     }
 }

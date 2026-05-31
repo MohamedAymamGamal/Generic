@@ -138,9 +138,7 @@ namespace Ecom.infrastructure.Reposities
 
             if (!IsOtpValid(user, dto.OtpCode.ToString()))
             {
-                // OPTIONAL: Regenerating a token automatically on failure means if they typos, 
-                // the old one instantly dies. If you want this behavior, keep this line. 
-                // If you want them to be able to retry typing, remove this line.
+              
                 await IssueAndSendOtp(user, purpose: "active");
                 return false;
             }

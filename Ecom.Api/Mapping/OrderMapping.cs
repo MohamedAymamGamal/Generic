@@ -8,8 +8,8 @@ namespace Ecom.Api.Mapping
     public class OrderMapping:Profile
     {
         public OrderMapping() {
-            CreateMap<Order, OrderToReturnDTO>()
-                ;
+            CreateMap<Order, OrderToReturnDTO>();
+                
 
             CreateMap<Order, OrderToReturnDTO>()
                  .ForMember(d => d.deliveryMethod,

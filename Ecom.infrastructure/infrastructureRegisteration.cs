@@ -46,6 +46,7 @@ namespace Ecom.infrastructure
             services.AddScoped<IGenrateToken, GenrateToken>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IOrder, OrderServices>();
+            services.AddScoped<IRatingService, RatingService>();
             services.AddSingleton<IImageMangamentService, ImageMangamentService>();
 
           

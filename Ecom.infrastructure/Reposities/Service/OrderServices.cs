@@ -53,22 +53,34 @@ namespace Ecom.infrastructure.Reposities.Service
 
             await _context.Orders.AddAsync(order);
             await _context.SaveChangesAsync();
+            await _unitOfWork.CustomerBasketRepository.DeleteBasketAsync(orderDTO.BasketId);
             return order;
         }
 
-        public Task<IReadOnlyList<Order>> GetAllOrdersForUserAsync(string BuyerEmail)
+        public async Task<IReadOnlyList<OrderToReturnDTO>> GetAllOrdersForUserAsync(string BuyerEmail)
         {
-            throw new NotImplementedException();
+            var orders = await _context.Orders.Where(m=> m.BuyerEmail == BuyerEmail).
+                Include(inc => inc.BuyerEmail).Include(inc => inc.deliveryMethod).ToListAsync();
+
+            var result = _mapper.Map<IReadOnlyList<OrderToReturnDTO>>(orders);
+            result = result.OrderByDescending(m => m.Id).ToList();
+            return result;
         }
 
-        public Task<IReadOnlyList<DeliveryMethod>> GetDeliveryMethodAsync()
+        public async Task<IReadOnlyList<DeliveryMethod>> GetDeliveryMethodAsync()
         {
-            throw new NotImplementedException();
+            return await _context.DeliveryMethods.AsNoTracking().ToListAsync();
         }
 
-        public Task<OrderDto> GetOrderByIdAsync(int Id, string BuyerEmail)
+        public async Task<Order?> GetOrderByIdAsync(int Id, string BuyerEmail)
         {
-            throw new NotImplementedException();
+           var order = await _context.Orders.Where(m=>m.Id == Id && m.BuyerEmail == BuyerEmail).
+            Include(inc => inc.BuyerEmail).Include(inc => inc.deliveryMethod).FirstOrDefaultAsync();
+            var result = _mapper.Map<OrderToReturnDTO>(order);
+            if (order == null) return null;
+
+            return order;
+
         }
     }
 }

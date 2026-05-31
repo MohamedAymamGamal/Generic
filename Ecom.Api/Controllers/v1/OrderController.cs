@@ -21,8 +21,8 @@ namespace Ecom.Api.Controllers.v1
             _orderService = orderService;
         }
 
-        [HttpPost("create-order")]
-        public async Task<ActionResult> create(OrderDto orderDTO)
+        [HttpPost]
+        public async Task<IActionResult> create(OrderDto orderDTO)
         {
             try {
                 var email = User.FindFirst("email_verified")?.Value == "true"
@@ -35,7 +35,7 @@ namespace Ecom.Api.Controllers.v1
                 
 
             }
-            catch (Exception ex) {
+            catch (Exception) {
 
                 return BadRequest(new ResponseAPI(400, "there is no order created"));
 
@@ -43,5 +43,57 @@ namespace Ecom.Api.Controllers.v1
 
         }
 
+
+
+        [HttpGet]
+
+        public async Task<IActionResult> getAll() 
+        {
+            try {
+                var email = User.FindFirst(ClaimTypes.Email)?.Value;
+                var order = await _orderService.GetAllOrdersForUserAsync(email);
+                if (order == null) return null;
+                return Ok( order);
+            
+
+            }
+
+            catch (Exception) {
+                return BadRequest(new ResponseAPI(400, "there is no orders "));
+
+            }
+
+        
+        }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(int id)
+        {
+            try {
+                var email = User.FindFirst(ClaimTypes.Email)?.Value;
+                if (email is null) return NotFound();
+                var order = await _orderService.GetOrderByIdAsync(id, email);
+                return Ok(order);
+                    
+            } catch (Exception) {
+                return BadRequest(new ResponseAPI(400, "there is no order "));
+
+            }
+
+
+        }
+
+        [HttpGet("get-delivery")]
+        public async Task<IActionResult> getDelivery()
+        {
+           try
+            {
+                var result = await _orderService.GetDeliveryMethodAsync();
+                return Ok(result);
+            }catch
+            {
+                return BadRequest(new ResponseAPI(400, "there is Delivery "));
+
+            }
+        }
     }
 }
