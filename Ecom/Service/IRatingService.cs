@@ -1,4 +1,6 @@
-﻿using Ecom.Core.DTO;
+﻿using Ecom.Api.Sharing;
+using Ecom.Core.DTO;
+using Ecom.Core.Sharing;
 using System;
 using System.Collections.Generic;
 using System.Text;

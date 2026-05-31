@@ -14,6 +14,7 @@ namespace Ecom.Api.Controllers.v1
         public ProductController(IUnitOfWork work, IMapper mapper) : base(work, mapper)
         {
         }
+
         [HttpGet]
         public async Task<IActionResult> get([FromQuery] ProductParams productParams)
         {

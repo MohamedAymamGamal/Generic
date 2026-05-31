@@ -3,6 +3,7 @@ using Ecom.Core.DTO;
 using Ecom.Core.Entities.Product;
 using Ecom.Core.Interfaces;
 using Ecom.Core.Service;
+using Ecom.Core.Sharing;
 using System;
 using System.Collections.Generic;
 using System.Text;

@@ -8,7 +8,7 @@ namespace Ecom.Api.Mapping
     {
         public RatingMapping() {
 
-            CreateMap<ProductRating, RatingMapping>();
+            CreateMap<ProductRating, RatingToReturnDTO>().ReverseMap();
 
             CreateMap<CreateRatingDTO, ProductRating>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())

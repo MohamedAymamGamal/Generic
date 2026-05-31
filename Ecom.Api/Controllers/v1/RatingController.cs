@@ -63,6 +63,7 @@ public class RatingController : BaseController
     [HttpDelete("{ratingId:int}")]
     [ProducesResponseType(typeof(ResponseAPI), 200)]
     [ProducesResponseType(typeof(ResponseAPI), 404)]
+    
     public async Task<IActionResult> Delete(int productId, int ratingId)
     {
         var deleted = await _ratingService.DeleteAsync(ratingId);

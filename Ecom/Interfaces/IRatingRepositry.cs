@@ -1,4 +1,6 @@
-﻿using Ecom.Core.Entities.Product;
+﻿using Ecom.Api.Sharing;
+using Ecom.Core.Entities.Product;
+using Ecom.Core.Sharing;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
