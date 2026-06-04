@@ -76,7 +76,7 @@ services:
     container_name: ecom-sqlserver
     restart: unless-stopped
     ports:
-      - "1433:1433"       
+      - "1435:1433"       
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: ${SA_PASSWORD}

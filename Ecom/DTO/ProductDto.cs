@@ -11,11 +11,12 @@ namespace Ecom.Core.DTO
         public int? Id { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
-        public virtual List<PhotoDto> Photos { get; set; } 
+        public virtual List<PhotoDto>? Photos { get; set; } 
 
         public virtual List<RatingToReturnDTO> Rating {  get; set; }
         public decimal? Newprice { get; set; }
         public decimal? OldPrice { get; set; }
+        public int? CategoryId { get; set; }
         public string CategoryName  { get; set; }
     }
     public record PhotoDto

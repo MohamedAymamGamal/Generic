@@ -47,7 +47,7 @@ namespace Ecom.infrastructure.Reposities
             _imageMangamentService = imageMangamentService;
             ProductRepository = new ProductRepositry(_context, _mapper, _imageMangamentService);
 
-            CategoryRepository = new CategoryRepositry(_context);
+            CategoryRepository = new CategoryRepositry(_context,mapper);
 
             PhotoRepository = new PhotoRepoistory(_context);
 

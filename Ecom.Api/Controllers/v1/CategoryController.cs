@@ -42,11 +42,8 @@ namespace Ecom.Api.Controllers.v1
         {
             try
             {
-                var category = await work.CategoryRepository.GetByIdAsync(id);
-                if (category == null)
-                {
-                    return BadRequest(new ResponseAPI(400, $"not found category id={id}"));
-                }
+                var category = await work.CategoryRepository.GetCategoryWithProductsAsync(id);
+              
                 return Ok(category);
             }
             catch (Exception ex)
